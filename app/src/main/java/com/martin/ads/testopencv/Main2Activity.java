@@ -60,6 +60,7 @@ public class Main2Activity extends Activity implements View.OnTouchListener {
         setContentView(R.layout.activity_main2);
         imageView = findViewById(R.id.img);
         bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.timg);
+//        bitmap = BitmapFactory.decodeFile(imgPath);
         bitmap = regularBitmap(bitmap);
         Log.e(TAG, " 提取bitmap bitmap.getWidth() = " + bitmap.getWidth() + "  bitmap.getHeight() = " + bitmap.getHeight());
         init(bitmap);
@@ -110,7 +111,10 @@ public class Main2Activity extends Activity implements View.OnTouchListener {
         Utils.bitmapToMat(bitmap, img);
     }
 
-
+    /**
+     * 线程执行
+     * @param view
+     */
     public void onGrabCut(View view) {
         Thread thread = new Thread() {
             @Override
@@ -127,12 +131,20 @@ public class Main2Activity extends Activity implements View.OnTouchListener {
         thread.start();
     }
 
+    /**
+     * 添加种子点
+     * @param p
+     */
     private void setLblsInMask(Point p) {
 
         Imgproc.circle(firstMask, p, radius, new Scalar(GC_BGD), thickness);
 
     }
 
+    /**
+     * 重置
+     * @param view
+     */
     public void onReset(View view) {
 
         bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.timg);
@@ -141,6 +153,9 @@ public class Main2Activity extends Activity implements View.OnTouchListener {
         init(bitmap);
     }
 
+    /**
+     * 决定是你了
+     */
     private void grabcut() {
 
         Imgproc.cvtColor(img, img, Imgproc.COLOR_RGBA2RGB);
@@ -165,7 +180,9 @@ public class Main2Activity extends Activity implements View.OnTouchListener {
 
         //抠图
         Log.e(TAG, "取出前景。。。。");
+
         Mat foreground = new Mat(img.size(), CvType.CV_8UC3, new Scalar(255, 255, 255, 255));
+
         img.copyTo(foreground, firstMask);
         //mat->bitmap
         b = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.ARGB_8888);
@@ -208,6 +225,11 @@ public class Main2Activity extends Activity implements View.OnTouchListener {
         return true;
     }
 
+    /**
+     * 保存bitmap
+     *
+     * @param view
+     */
     public void saveBitmap(View view) {
 
         String path = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "grabcut.png";
