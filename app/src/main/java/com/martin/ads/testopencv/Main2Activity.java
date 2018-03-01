@@ -27,15 +27,19 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Main2Activity extends Activity implements View.OnTouchListener {
-    public static final String imgPath = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "temp.jpg";
+    //    public static final String imgPath = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "box.jpg";
+    public static final String imgPath = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "tencent" + File.separator + "QQ_Images" + File.separator
+            + "realbaby.jpg";
     public static final String TAG = "Main2Activity";
     ImageView imageView;
     private Bitmap bitmap;
     Bitmap b;
     private float s = 0;
-    int radius = 5;
+    int radius = 10;
     int thickness = -1;
     Mat img;
     Mat firstMask;
@@ -59,8 +63,8 @@ public class Main2Activity extends Activity implements View.OnTouchListener {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main2);
         imageView = findViewById(R.id.img);
-        bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.timg);
-//        bitmap = BitmapFactory.decodeFile(imgPath);
+//        bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.timg);
+        bitmap = BitmapFactory.decodeFile(imgPath);
         bitmap = regularBitmap(bitmap);
         Log.e(TAG, " 提取bitmap bitmap.getWidth() = " + bitmap.getWidth() + "  bitmap.getHeight() = " + bitmap.getHeight());
         init(bitmap);
@@ -104,7 +108,8 @@ public class Main2Activity extends Activity implements View.OnTouchListener {
 
         Size size = new Size(bitmap.getWidth(), bitmap.getHeight());
         firstMask.create(size, CvType.CV_8UC1);
-        firstMask.setTo(new Scalar(GC_PR_FGD));
+//        firstMask.setTo(new Scalar(GC_PR_BGD));//扣前景
+        firstMask.setTo(new Scalar(GC_PR_FGD));//扣背景
 
         img = new Mat();
 
@@ -113,6 +118,7 @@ public class Main2Activity extends Activity implements View.OnTouchListener {
 
     /**
      * 线程执行
+     *
      * @param view
      */
     public void onGrabCut(View view) {
@@ -133,16 +139,21 @@ public class Main2Activity extends Activity implements View.OnTouchListener {
 
     /**
      * 添加种子点
+     *
      * @param p
      */
-    private void setLblsInMask(Point p) {
 
-        Imgproc.circle(firstMask, p, radius, new Scalar(GC_BGD), thickness);
+    private void setLblsInMask(Point p) {
+        count++;
+
+//        Imgproc.circle(firstMask, p, radius, new Scalar(GC_FGD),0);
+        Imgproc.circle(firstMask, p, radius, new Scalar(GC_BGD), 0);
 
     }
 
     /**
      * 重置
+     *
      * @param view
      */
     public void onReset(View view) {
@@ -173,6 +184,7 @@ public class Main2Activity extends Activity implements View.OnTouchListener {
         Mat source = new Mat(1, 1, CvType.CV_8U, new Scalar(Imgproc.GC_PR_FGD));
         long time = System.currentTimeMillis();
         Log.e(TAG, "开始grabcut。。。。。。。");
+        Log.e(TAG, "描点个数为 ： " + count + "个");
         Imgproc.grabCut(img, firstMask, rect, bgModel, fgModel, 1, Imgproc.GC_INIT_WITH_MASK);
         Log.e(TAG, "结束grabcut。。。。。。。执行时间为 ： " + ((System.currentTimeMillis() - time) / 1000) + "s");
 
@@ -189,8 +201,64 @@ public class Main2Activity extends Activity implements View.OnTouchListener {
         Utils.matToBitmap(foreground, b);
 
         init(b);
+        count = 0;
 
         imageView.setImageBitmap(b);
+    }
+
+    /**
+     * 白色背景变为透明色
+     *
+     * @return
+     */
+    private Bitmap change2Transparent() {
+        String s = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "base.jpg";
+        String s1 = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "logo.jpg";
+        Mat source = new Mat();
+        Mat source1 = new Mat();
+        Bitmap bitmap = BitmapFactory.decodeFile(s);
+        Bitmap bitmap1 = BitmapFactory.decodeFile(s1);
+        Utils.bitmapToMat(bitmap, source);
+        Utils.bitmapToMat(bitmap1, source1);
+        System.out.println("加载bitmap    ： bitmap.getWidth() = " + bitmap.getWidth() + "bitmap1.getWidth() = " + bitmap1.getWidth());
+        Mat destination = source.clone();
+
+        // to make the white region transparent
+        Mat mask2 = new Mat();
+        Mat dst = new Mat();
+
+
+        Imgproc.cvtColor(source1, mask2, Imgproc.COLOR_BGR2GRAY);
+        Imgproc.threshold(mask2, mask2, 230, 255, Imgproc.THRESH_BINARY_INV);
+        List<Mat> planes = new ArrayList<Mat>();
+        List<Mat> result = new ArrayList<Mat>();
+        Mat result1 = new Mat();
+        Mat result2 = new Mat();
+        Mat result3 = new Mat();
+
+
+        Core.split(source1, planes);
+
+        Core.bitwise_and(planes.get(0), mask2, result1);
+        Core.bitwise_and(planes.get(1), mask2, result2);
+        Core.bitwise_and(planes.get(2), mask2, result3);
+
+        result.add(result1);
+        result.add(result2);
+        result.add(result3);
+        Core.merge(result, dst);
+        //以上白色变透明
+
+
+        //再把小图copy到大图
+        Rect roi = new Rect(50, 50, 90, 62);//不能比原图大,及小
+        Mat destinationROI = source.submat(roi);
+        dst.copyTo(destinationROI, dst);
+
+        System.out.println("生成 mat ： " + " dst.size().width = " + dst.size().width + " dst.size().height = " + dst.size().height);
+
+        Utils.matToBitmap(dst, bitmap1);
+        return bitmap;
     }
 
 
@@ -225,6 +293,8 @@ public class Main2Activity extends Activity implements View.OnTouchListener {
         return true;
     }
 
+    int count = 0;
+
     /**
      * 保存bitmap
      *
@@ -237,7 +307,6 @@ public class Main2Activity extends Activity implements View.OnTouchListener {
         try {
             FileOutputStream fileOutputStream = new FileOutputStream(file);
             b.compress(Bitmap.CompressFormat.PNG, 10, fileOutputStream);
-
             fileOutputStream.flush();
             fileOutputStream.close();
 

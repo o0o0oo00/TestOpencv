@@ -12,6 +12,11 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="saveBitmap"
+            android:text="保存" />
 
         <Button
             android:layout_width="wrap_content"
@@ -22,14 +27,16 @@
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:onClick="onGrabCut"
-            android:text="确定" />
+            android:onClick="onRect"
+            android:text="方框" />
 
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:onClick="saveBitmap"
-            android:text="保存" />
+            android:onClick="onGrabCut"
+            android:text="确定" />
+
+
     </LinearLayout>
 
     <ImageView
