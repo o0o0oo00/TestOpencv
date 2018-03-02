@@ -11,7 +11,9 @@ import android.os.Environment;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import org.opencv.android.Utils;
 import org.opencv.core.Core;
@@ -31,15 +33,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Main2Activity extends Activity implements View.OnTouchListener {
-    //    public static final String imgPath = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "box.jpg";
-    public static final String imgPath = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "tencent" + File.separator + "QQ_Images" + File.separator
-            + "realbaby.jpg";
+    public static final String imgPath = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "temp.jpg";
+    //    public static final String imgPath = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "tencent" + File.separator + "QQ_Images" + File.separator + "realbaby.jpg";
     public static final String TAG = "Main2Activity";
     ImageView imageView;
+    TextView textView;
     private Bitmap bitmap;
     Bitmap b;
     private float s = 0;
-    int radius = 10;
+    Rect rect;
+    int radius_circle = 25;
     int thickness = -1;
     Mat img;
     Mat firstMask;
@@ -51,11 +54,14 @@ public class Main2Activity extends Activity implements View.OnTouchListener {
     Canvas canvas;
     Paint paint;
 
+    public int top = 0, right = 0, bottom = 0, left = 0;
+    public boolean isInitEdge = true;
 
     // Used to load the 'native-lib' library on application startup.
     static {
         System.loadLibrary("opencv_java3");
         System.loadLibrary("opencv_java");
+//        System.loadLibrary("native-lib");
     }
 
     @Override
@@ -63,8 +69,9 @@ public class Main2Activity extends Activity implements View.OnTouchListener {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main2);
         imageView = findViewById(R.id.img);
-//        bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.timg);
-        bitmap = BitmapFactory.decodeFile(imgPath);
+        textView = findViewById(R.id.tv_time);
+        bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.timg);
+//        bitmap = BitmapFactory.decodeFile(imgPath);
         bitmap = regularBitmap(bitmap);
         Log.e(TAG, " 提取bitmap bitmap.getWidth() = " + bitmap.getWidth() + "  bitmap.getHeight() = " + bitmap.getHeight());
         init(bitmap);
@@ -108,8 +115,8 @@ public class Main2Activity extends Activity implements View.OnTouchListener {
 
         Size size = new Size(bitmap.getWidth(), bitmap.getHeight());
         firstMask.create(size, CvType.CV_8UC1);
-//        firstMask.setTo(new Scalar(GC_PR_BGD));//扣前景
-        firstMask.setTo(new Scalar(GC_PR_FGD));//扣背景
+        firstMask.setTo(new Scalar(GC_PR_BGD));//扣前景
+//        firstMask.setTo(new Scalar(GC_PR_FGD));//扣背景
 
         img = new Mat();
 
@@ -142,12 +149,11 @@ public class Main2Activity extends Activity implements View.OnTouchListener {
      *
      * @param p
      */
-
     private void setLblsInMask(Point p) {
         count++;
 
-//        Imgproc.circle(firstMask, p, radius, new Scalar(GC_FGD),0);
-        Imgproc.circle(firstMask, p, radius, new Scalar(GC_BGD), 0);
+        Imgproc.circle(firstMask, p, radius_circle, new Scalar(GC_FGD), 1);//扣前景
+//        Imgproc.circle(firstMask, p, radius_circle, new Scalar(GC_BGD), 1);//扣背景
 
     }
 
@@ -159,6 +165,7 @@ public class Main2Activity extends Activity implements View.OnTouchListener {
     public void onReset(View view) {
 
         bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.timg);
+//        bitmap = BitmapFactory.decodeFile(imgPath);
         bitmap = regularBitmap(bitmap);
         Log.e(TAG, " 提取bitmap bitmap.getWidth() = " + bitmap.getWidth() + "  bitmap.getHeight() = " + bitmap.getHeight());
         init(bitmap);
@@ -169,33 +176,34 @@ public class Main2Activity extends Activity implements View.OnTouchListener {
      */
     private void grabcut() {
 
-        Imgproc.cvtColor(img, img, Imgproc.COLOR_RGBA2RGB);
+        Imgproc.cvtColor(img, img, Imgproc.COLOR_RGBA2RGB);//设置输出图像色彩
 
-        //设置抠图范围的左上角和右下角
-        int r = img.rows();
-        int c = img.cols();
-        Point p1 = new Point(10, 10);
-        Point p2 = new Point(c - 10, r - 10);
-        Rect rect = new Rect(p1, p2);
+        //裁切区域
+        Point point1 = new Point(left, top);
+        Point point2 = new Point(right, bottom);
+
+        rect = new Rect(point1, point2);
+
+        Log.e("grabcut: ", "区域大小为 ： " + " left = " + left + " top = " + top + " right = " + right + " bottom = " + bottom);
 
         //生成遮板
         Mat bgModel = new Mat();
         Mat fgModel = new Mat();
-        Mat source = new Mat(1, 1, CvType.CV_8U, new Scalar(Imgproc.GC_PR_FGD));
+        Mat source = new Mat(1, 1, CvType.CV_8UC1, new Scalar(Imgproc.GC_PR_FGD));
         long time = System.currentTimeMillis();
         Log.e(TAG, "开始grabcut。。。。。。。");
         Log.e(TAG, "描点个数为 ： " + count + "个");
         Imgproc.grabCut(img, firstMask, rect, bgModel, fgModel, 1, Imgproc.GC_INIT_WITH_MASK);
         Log.e(TAG, "结束grabcut。。。。。。。执行时间为 ： " + ((System.currentTimeMillis() - time) / 1000) + "s");
-
-        Core.compare(firstMask, source, firstMask, Core.CMP_EQ);
+        textView.setText("执行时间为 ： " + ((System.currentTimeMillis() - time) / 1000) + "s");
 
         //抠图
         Log.e(TAG, "取出前景。。。。");
+        Core.compare(firstMask, source, firstMask, Core.CMP_EQ);//对比取出前景像素
 
-        Mat foreground = new Mat(img.size(), CvType.CV_8UC3, new Scalar(255, 255, 255, 255));
+        Mat foreground = new Mat(img.size(), CvType.CV_8UC3, new Scalar(255, 255, 255));
 
-        img.copyTo(foreground, firstMask);
+        img.copyTo(foreground, firstMask);//根据掩码，从原图中取出最终的前景
         //mat->bitmap
         b = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.ARGB_8888);
         Utils.matToBitmap(foreground, b);
@@ -206,8 +214,16 @@ public class Main2Activity extends Activity implements View.OnTouchListener {
         imageView.setImageBitmap(b);
     }
 
+    public void onRect(View view) {
+        Button button = (Button) view;
+        if ("画笔".equals(button.getText().toString())) {
+            paint.setStyle(Paint.Style.FILL_AND_STROKE);
+        }
+    }
+
     /**
      * 白色背景变为透明色
+     * 不好使
      *
      * @return
      */
@@ -271,25 +287,58 @@ public class Main2Activity extends Activity implements View.OnTouchListener {
         }
         int x = (int) (event.getX() / s);
         int y = (int) (event.getY() / s);
+        if (isInitEdge) {
+            top = y;
+            bottom = y;
+            left = x;
+            right = x;
+            isInitEdge = false;
+        }
         int type = event.getAction();
         switch (type) {
             case MotionEvent.ACTION_DOWN:
                 setLblsInMask(new Point(x, y));
-                canvas.drawCircle(x, y, radius, paint);
+                canvas.drawCircle(x, y, 18, paint);
                 imageView.invalidate();
                 break;
             case MotionEvent.ACTION_UP:
                 setLblsInMask(new Point(x, y));
+                if (x > right) {
+                    right = x;
+                }
+                if (x < left) {
+                    left = x;
+                }
+                if (y > bottom) {
+                    bottom = y;
+                }
+                if (y < top) {
+                    top = y;
+                }
                 break;
             case MotionEvent.ACTION_CANCEL:
                 setLblsInMask(new Point(x, y));
                 break;
             case MotionEvent.ACTION_MOVE:
                 setLblsInMask(new Point(x, y));
-                canvas.drawCircle(x, y, radius, paint);
+                canvas.drawCircle(x, y, 18, paint);
                 imageView.invalidate();
+                if (x > right) {
+                    right = x;
+                }
+                if (x < left) {
+                    left = x;
+                }
+                if (y > bottom) {
+                    bottom = y;
+                }
+                if (y < top) {
+                    top = y;
+                }
                 break;
         }
+
+
         return true;
     }
 

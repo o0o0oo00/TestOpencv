@@ -17,12 +17,13 @@ const Scalar LIGHTBLUE = Scalar(255, 255, 160);
 const Scalar GREEN = Scalar(0, 255, 0);
 
 
-static void getBinMask(const Mat &comMask, Mat &binMask) {
+static Mat getBinMask(const Mat &comMask, Mat &binMask) {
     if (comMask.empty() || comMask.type() != CV_8UC1)
         CV_Error(Error::StsBadArg, "comMask is empty or has incorrect type (not CV_8UC1)");
     if (binMask.empty() || binMask.rows != comMask.rows || binMask.cols != comMask.cols)
         binMask.create(comMask.size(), CV_8UC1);
     binMask = comMask & 1;
+    return binMask;
 }
 
 class GCApplication {
@@ -130,6 +131,7 @@ void GCApplication::showImage(JNIEnv *env, jobject instance) const {
     long img = (long) &res;
     env->CallVoidMethod(instance, showId, img);
 }
+
 //设置矩形范围大小
 void GCApplication::setRectInMask() {
     CV_Assert(!mask.empty());
@@ -140,6 +142,7 @@ void GCApplication::setRectInMask() {
     rect.height = min(rect.height, image->rows - rect.y);
     (mask(rect)).setTo(Scalar(GC_PR_FGD));
 }
+
 //设置上小圆点
 void GCApplication::setLblsInMask(int flags, Point p, bool isPr) {
     vector<Point> *bpxls, *fpxls;
@@ -252,7 +255,8 @@ on_mouse(GCApplication *gcapp, int event, int x, int y, int flags, JNIEnv *env, 
 
 extern "C"
 JNIEXPORT GCApplication *JNICALL
-Java_com_martin_ads_testopencv_Main3Activity_initGrabCut(JNIEnv *env, jobject instance, jlong image) {
+Java_com_martin_ads_testopencv_Main3Activity_initGrabCut(JNIEnv *env, jobject instance,
+                                                         jlong image) {
 
     // TODO
     Mat *img = (Mat *) image;//得到输入
@@ -266,8 +270,9 @@ Java_com_martin_ads_testopencv_Main3Activity_initGrabCut(JNIEnv *env, jobject in
     return gcapp;
 }extern "C"
 JNIEXPORT void JNICALL
-Java_com_martin_ads_testopencv_Main3Activity_moveGrabCut(JNIEnv *env, jobject instance, jint event, jint x,
-                                                  jint y, jint flags, jlong gcapp) {
+Java_com_martin_ads_testopencv_Main3Activity_moveGrabCut(JNIEnv *env, jobject instance, jint event,
+                                                         jint x,
+                                                         jint y, jint flags, jlong gcapp) {
 
     // TODO
     GCApplication *g = (GCApplication *) gcapp;
@@ -291,11 +296,19 @@ Java_com_martin_ads_testopencv_Main3Activity_grabCut(JNIEnv *env, jobject instan
     return (jboolean) (newIterCount > iterCount);
 }extern "C"
 JNIEXPORT void JNICALL
-Java_com_martin_ads_testopencv_Main3Activity_grabCutOver(JNIEnv *env, jobject instance, jlong gcapp) {
+Java_com_martin_ads_testopencv_Main3Activity_grabCutOver(JNIEnv *env, jobject instance,
+                                                         jlong gcapp) {
 
     // TODO
     GCApplication *g = (GCApplication *) gcapp;
     g->showImage(env, instance);
+}
+extern "C"
+JNIEXPORT Mat JNICALL
+Java_com_martin_ads_testopencv_Main2Activity_getBinMask(JNIEnv *env, jobject instance, Mat comMask,
+                                                        Mat binMask) {
+    return getBinMask(comMask, binMask);
+
 }
 
 //Mat Java_com_martin_ads_testopencv_Main3Activity_nativeGrabcut(JNIEnv *env, jobject instance,

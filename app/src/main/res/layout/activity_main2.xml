@@ -6,38 +6,54 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-
-    <LinearLayout
+    <HorizontalScrollView
         android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="saveBitmap"
+                android:text="保存" />
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="onReset"
+                android:text="重来" />
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="onRect"
+                android:text="画笔" />
+
+            <!--<Button-->
+            <!--android:layout_width="wrap_content"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:onClick="onRect"-->
+            <!--android:text="方框" />-->
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="onGrabCut"
+                android:text="确定" />
+
+
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <TextView
+        android:id="@+id/tv_time"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:onClick="saveBitmap"
-            android:text="保存" />
-
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:onClick="onReset"
-            android:text="重来" />
-
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:onClick="onRect"
-            android:text="方框" />
-
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:onClick="onGrabCut"
-            android:text="确定" />
-
-
-    </LinearLayout>
+        android:background="#0000" />
 
     <ImageView
         android:id="@+id/img"
@@ -45,5 +61,6 @@
         android:layout_height="match_parent"
         android:scaleType="fitStart"
         android:src="@mipmap/ic_launcher" />
+
 
 </LinearLayout>
