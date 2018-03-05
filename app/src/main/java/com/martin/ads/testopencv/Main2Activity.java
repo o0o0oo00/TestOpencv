@@ -65,7 +65,7 @@ public class Main2Activity extends Activity implements View.OnTouchListener {
     // Used to load the 'native-lib' library on application startup.
     static {
         System.loadLibrary("opencv_java3");
-        System.loadLibrary("opencv_java");
+//        System.loadLibrary("opencv_java");
 //        System.loadLibrary("native-lib");
     }
 

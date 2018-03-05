@@ -19,9 +19,7 @@ add_library(libopencv_java3 SHARED IMPORTED )
 set_target_properties(libopencv_java3 PROPERTIES
     IMPORTED_LOCATION "${libs}/${ANDROID_ABI}/libopencv_java3.so")
 
-add_library(libopencv_java SHARED IMPORTED )
-set_target_properties(libopencv_java PROPERTIES
-    IMPORTED_LOCATION "${libs}/${ANDROID_ABI}/libopencv_java.so")
+
 
 #add_library(libopencv_calib3d STATIC IMPORTED )
 #set_target_properties(libopencv_calib3d PROPERTIES
@@ -113,7 +111,6 @@ find_library( # Sets the name of the path variable.
 
 target_link_libraries(native-lib android log
     libopencv_java3 #used for java sdk
-    libopencv_java #same to static libs
     #17 static libs in total
     #libopencv_calib3d
     #libopencv_core
