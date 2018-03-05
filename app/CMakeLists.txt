@@ -12,14 +12,11 @@ cmake_minimum_required(VERSION 3.4.1)
 
 set(CMAKE_VERBOSE_MAKEFILE on)
 set(libs "${CMAKE_SOURCE_DIR}/src/main/jniLibs")
-include_directories(${CMAKE_SOURCE_DIR}/src/main/cpp/include)
 
 #--------------------------------------------------- import ---------------------------------------------------#
 add_library(libopencv_java3 SHARED IMPORTED )
 set_target_properties(libopencv_java3 PROPERTIES
     IMPORTED_LOCATION "${libs}/${ANDROID_ABI}/libopencv_java3.so")
-
-
 
 #add_library(libopencv_calib3d STATIC IMPORTED )
 #set_target_properties(libopencv_calib3d PROPERTIES
@@ -69,25 +66,7 @@ set_target_properties(libopencv_java3 PROPERTIES
 #set_target_properties(libopencv_shape PROPERTIES
 #    IMPORTED_LOCATION "${libs}/${ANDROID_ABI}/libopencv_shape.a")
 #
-#add_library(libopencv_stitching STATIC IMPORTED )
-#set_target_properties(libopencv_stitching PROPERTIES
-#    IMPORTED_LOCATION "${libs}/${ANDROID_ABI}/libopencv_stitching.a")
 #
-#add_library(libopencv_superres STATIC IMPORTED )
-#set_target_properties(libopencv_superres PROPERTIES
-#    IMPORTED_LOCATION "${libs}/${ANDROID_ABI}/libopencv_superres.a")
-#
-#add_library(libopencv_video STATIC IMPORTED )
-#set_target_properties(libopencv_video PROPERTIES
-#    IMPORTED_LOCATION "${libs}/${ANDROID_ABI}/libopencv_video.a")
-#
-#add_library(libopencv_videoio STATIC IMPORTED )
-#set_target_properties(libopencv_videoio PROPERTIES
-#    IMPORTED_LOCATION "${libs}/${ANDROID_ABI}/libopencv_videoio.a")
-#
-#add_library(libopencv_videostab STATIC IMPORTED )
-#set_target_properties(libopencv_videostab PROPERTIES
-#    IMPORTED_LOCATION "${libs}/${ANDROID_ABI}/libopencv_videostab.a")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11 -fexceptions -frtti")
 
@@ -124,11 +103,6 @@ target_link_libraries(native-lib android log
     #libopencv_objdetect
     #libopencv_photo
     #libopencv_shape
-    #libopencv_stitching
-    #libopencv_superres
-    #libopencv_video
-    #libopencv_videoio
-    #libopencv_videostab
     ${log-lib}
     )
 

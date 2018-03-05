@@ -234,6 +234,8 @@ public class Main2Activity extends Activity implements View.OnTouchListener {
         Imgproc.erode(erode, dilate, structuringElement);
         Imgproc.dilate(dilate, dilate, structuringElement);
 
+        Imgproc.blur(dilate, dilate, new Size(19, 19));
+
         img.copyTo(foreground, dilate);//根据掩码，从原图中取出最终的前景
 
         b = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.ARGB_8888);
