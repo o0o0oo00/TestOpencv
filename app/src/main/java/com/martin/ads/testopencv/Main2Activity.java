@@ -152,7 +152,7 @@ public class Main2Activity extends Activity implements View.OnTouchListener {
     private void setLblsInMask(Point p) {
         count++;
 
-        Imgproc.circle(firstMask, p, radius_circle, new Scalar(GC_FGD), 1);//扣前景
+        Imgproc.circle(firstMask, p, radius_circle, new Scalar(GC_FGD));//扣前景
 //        Imgproc.circle(firstMask, p, radius_circle, new Scalar(GC_BGD), 1);//扣背景
 
     }
@@ -194,22 +194,38 @@ public class Main2Activity extends Activity implements View.OnTouchListener {
         Log.e(TAG, "开始grabcut。。。。。。。");
         Log.e(TAG, "描点个数为 ： " + count + "个");
         Imgproc.grabCut(img, firstMask, rect, bgModel, fgModel, 1, Imgproc.GC_INIT_WITH_MASK);
-        Log.e(TAG, "结束grabcut。。。。。。。执行时间为 ： " + ((System.currentTimeMillis() - time) / 1000) + "s");
-        textView.setText("执行时间为 ： " + ((System.currentTimeMillis() - time) / 1000) + "s");
-
-        //抠图
+//      //抠图
         Log.e(TAG, "取出前景。。。。");
-        Core.compare(firstMask, source, firstMask, Core.CMP_EQ);//对比取出前景像素
+        //对比取出前景像素
+        Core.compare(firstMask, source, firstMask, Core.CMP_EQ);
 
         Mat foreground = new Mat(img.size(), CvType.CV_8UC3, new Scalar(255, 255, 255));
 
-        img.copyTo(foreground, firstMask);//根据掩码，从原图中取出最终的前景
-        //mat->bitmap
+//        firstMask = extractBackground(firstMask);
+        Mat erode = new Mat();
+        Mat dilate = new Mat();
+        Mat structuringElement = Imgproc.getStructuringElement(0, new Size(15, 15));
+        Imgproc.dilate(firstMask, dilate, structuringElement);//去掉印记
+
+        Imgproc.erode(dilate, erode, structuringElement);//去掉小的联通区域
+        Imgproc.erode(erode, dilate, structuringElement);
+//        Imgproc.dilate(dilate, erode, structuringElement);
+        Imgproc.dilate(dilate, dilate, structuringElement);
+
+        img.copyTo(foreground, dilate);//根据掩码，从原图中取出最终的前景
+
         b = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.ARGB_8888);
+        Mat fina = new Mat(img.size(), CvType.CV_8UC3, new Scalar(255, 255, 255));
+
         Utils.matToBitmap(foreground, b);
 
-        init(b);
+        Log.e(TAG, "结束grabcut。。。。。。。执行时间为 ： " + ((System.currentTimeMillis() - time) / 1000) + "s");
+        textView.setText("执行时间为 ： " + ((System.currentTimeMillis() - time) / 1000) + "s");
+
+//        init(b);
         count = 0;
+
+//        b = Bitmap.createBitmap(b, left, top, (right - left), (bottom - top));
 
         imageView.setImageBitmap(b);
     }
@@ -219,6 +235,29 @@ public class Main2Activity extends Activity implements View.OnTouchListener {
         if ("画笔".equals(button.getText().toString())) {
             paint.setStyle(Paint.Style.FILL_AND_STROKE);
         }
+    }
+
+    private Mat extractBackground(Mat img) {
+
+        int rows = img.rows();
+        int cols = img.cols();
+
+        Mat mask = new Mat();
+        Mat hsv = new Mat();
+
+//        Imgproc.cvtColor(img, hsv, Imgproc.COLOR_BGR2HSV);
+//
+//        Scalar lower = new Scalar(78, 43, 46);
+//        Scalar upper = new Scalar(110, 255, 255);
+//        Core.inRange(hsv, lower, upper, mask);
+
+        Mat erode = new Mat();
+        Mat dilate = new Mat();
+        Mat structuringElement = Imgproc.getStructuringElement(0, new Size(20, 20));
+        Imgproc.erode(img, erode, structuringElement);//腐蚀
+//        Imgproc.dilate(mask, dilate, structuringElement);//膨胀
+
+        return erode;
     }
 
     /**
