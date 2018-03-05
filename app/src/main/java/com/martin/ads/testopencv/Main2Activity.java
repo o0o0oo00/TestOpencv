@@ -7,6 +7,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.Bundle;
+import android.os.Debug;
 import android.os.Environment;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -32,9 +33,13 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.opencv.imgproc.Imgproc.CV_BLUR;
+import static org.opencv.imgproc.Imgproc.CV_GAUSSIAN_5x5;
+import static org.opencv.imgproc.Imgproc.CV_MEDIAN;
+
 public class Main2Activity extends Activity implements View.OnTouchListener {
     public static final String imgPath = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "temp.jpg";
-    //    public static final String imgPath = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "tencent" + File.separator + "QQ_Images" + File.separator + "realbaby.jpg";
+    //    public static final String imgPath = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "tencent" + File.separator + "QQ_Images" + File.separator + "black4.jpg";
     public static final String TAG = "Main2Activity";
     ImageView imageView;
     TextView textView;
@@ -70,10 +75,7 @@ public class Main2Activity extends Activity implements View.OnTouchListener {
         setContentView(R.layout.activity_main2);
         imageView = findViewById(R.id.img);
         textView = findViewById(R.id.tv_time);
-        bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.timg);
-//        bitmap = BitmapFactory.decodeFile(imgPath);
-        bitmap = regularBitmap(bitmap);
-        Log.e(TAG, " 提取bitmap bitmap.getWidth() = " + bitmap.getWidth() + "  bitmap.getHeight() = " + bitmap.getHeight());
+        initBitmap();
         init(bitmap);
 
         imageView.setOnTouchListener(this);
@@ -164,11 +166,15 @@ public class Main2Activity extends Activity implements View.OnTouchListener {
      */
     public void onReset(View view) {
 
+        initBitmap();
+        init(bitmap);
+    }
+
+    private void initBitmap() {
         bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.timg);
 //        bitmap = BitmapFactory.decodeFile(imgPath);
         bitmap = regularBitmap(bitmap);
         Log.e(TAG, " 提取bitmap bitmap.getWidth() = " + bitmap.getWidth() + "  bitmap.getHeight() = " + bitmap.getHeight());
-        init(bitmap);
     }
 
     /**
@@ -179,6 +185,23 @@ public class Main2Activity extends Activity implements View.OnTouchListener {
         Imgproc.cvtColor(img, img, Imgproc.COLOR_RGBA2RGB);//设置输出图像色彩
 
         //裁切区域
+        left -= 100;
+        top -= 100;
+        right += 100;
+        bottom += 100;
+        if (left < 0) {
+            left = 0;
+        }
+        if (top < 0) {
+            top = 0;
+        }
+        if (right > bitmap.getWidth()) {
+            right = bitmap.getWidth();
+        }
+        if (bottom > bitmap.getHeight()) {
+            bottom = bitmap.getHeight();
+        }
+
         Point point1 = new Point(left, top);
         Point point2 = new Point(right, bottom);
 
@@ -193,6 +216,7 @@ public class Main2Activity extends Activity implements View.OnTouchListener {
         long time = System.currentTimeMillis();
         Log.e(TAG, "开始grabcut。。。。。。。");
         Log.e(TAG, "描点个数为 ： " + count + "个");
+        //最后一个参数是使用mask作为裁切依照，也可以是Rect作为裁切依照，但是我测试出来，使用mask方式要比rect方式快很多，使用mask方式rect参数好像是不起作用的
         Imgproc.grabCut(img, firstMask, rect, bgModel, fgModel, 1, Imgproc.GC_INIT_WITH_MASK);
 //      //抠图
         Log.e(TAG, "取出前景。。。。");
@@ -201,32 +225,35 @@ public class Main2Activity extends Activity implements View.OnTouchListener {
 
         Mat foreground = new Mat(img.size(), CvType.CV_8UC3, new Scalar(255, 255, 255));
 
-//        firstMask = extractBackground(firstMask);
         Mat erode = new Mat();
         Mat dilate = new Mat();
-        Mat structuringElement = Imgproc.getStructuringElement(0, new Size(15, 15));
-        Imgproc.dilate(firstMask, dilate, structuringElement);//去掉印记
-
+        //shape 设置为2 边缘比较顺滑
+        Mat structuringElement = Imgproc.getStructuringElement(2, new Size(15, 15));
+        Imgproc.dilate(firstMask, dilate, structuringElement);//腐蚀 、去掉印记
         Imgproc.erode(dilate, erode, structuringElement);//去掉小的联通区域
         Imgproc.erode(erode, dilate, structuringElement);
-//        Imgproc.dilate(dilate, erode, structuringElement);
         Imgproc.dilate(dilate, dilate, structuringElement);
 
         img.copyTo(foreground, dilate);//根据掩码，从原图中取出最终的前景
 
         b = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.ARGB_8888);
-        Mat fina = new Mat(img.size(), CvType.CV_8UC3, new Scalar(255, 255, 255));
 
+
+        //边缘模糊
+//        foreground = nativeCVSmooth(foreground.nativeObj);
+//        Imgproc.blur(foreground, foreground, new Size(9, 9));
+//        Imgproc.GaussianBlur(foreground, foreground, new Size(9, 9), 0, 0);
+//        Imgproc.medianBlur(foreground, foreground, CV_GAUSSIAN_5x5);
+//        Imgproc.medianBlur(foreground, foreground, CV_MEDIAN);
+//        Imgproc.bilateralFilter(foreground, foreground, 5, param1, param2);
         Utils.matToBitmap(foreground, b);
 
         Log.e(TAG, "结束grabcut。。。。。。。执行时间为 ： " + ((System.currentTimeMillis() - time) / 1000) + "s");
-        textView.setText("执行时间为 ： " + ((System.currentTimeMillis() - time) / 1000) + "s");
+        textView.setText("执行时间为 ： " + ((double) (System.currentTimeMillis() - (double) time) / (double) 1000) + "s");
 
-//        init(b);
+        init(b);
+
         count = 0;
-
-//        b = Bitmap.createBitmap(b, left, top, (right - left), (bottom - top));
-
         imageView.setImageBitmap(b);
     }
 
@@ -254,7 +281,7 @@ public class Main2Activity extends Activity implements View.OnTouchListener {
         Mat erode = new Mat();
         Mat dilate = new Mat();
         Mat structuringElement = Imgproc.getStructuringElement(0, new Size(20, 20));
-        Imgproc.erode(img, erode, structuringElement);//腐蚀
+        Imgproc.erode(img, erode, structuringElement);//腐蚀 白色变小  也就是说主题变小
 //        Imgproc.dilate(mask, dilate, structuringElement);//膨胀
 
         return erode;
@@ -407,5 +434,7 @@ public class Main2Activity extends Activity implements View.OnTouchListener {
 
 
     }
+
+//    public native Mat nativeCVSmooth(long mat);
 
 }

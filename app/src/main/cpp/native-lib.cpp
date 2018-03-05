@@ -17,13 +17,12 @@ const Scalar LIGHTBLUE = Scalar(255, 255, 160);
 const Scalar GREEN = Scalar(0, 255, 0);
 
 
-static Mat getBinMask(const Mat &comMask, Mat &binMask) {
+static void getBinMask(const Mat &comMask, Mat &binMask) {
     if (comMask.empty() || comMask.type() != CV_8UC1)
         CV_Error(Error::StsBadArg, "comMask is empty or has incorrect type (not CV_8UC1)");
     if (binMask.empty() || binMask.rows != comMask.rows || binMask.cols != comMask.cols)
         binMask.create(comMask.size(), CV_8UC1);
     binMask = comMask & 1;
-    return binMask;
 }
 
 class GCApplication {
@@ -303,13 +302,6 @@ Java_com_martin_ads_testopencv_Main3Activity_grabCutOver(JNIEnv *env, jobject in
     GCApplication *g = (GCApplication *) gcapp;
     g->showImage(env, instance);
 }
-extern "C"
-JNIEXPORT Mat JNICALL
-Java_com_martin_ads_testopencv_Main2Activity_getBinMask(JNIEnv *env, jobject instance, Mat comMask,
-                                                        Mat binMask) {
-    return getBinMask(comMask, binMask);
-
-}
 
 //Mat Java_com_martin_ads_testopencv_Main3Activity_nativeGrabcut(JNIEnv *env, jobject instance,
 //                                                               jlong img) {
@@ -329,5 +321,22 @@ Java_com_martin_ads_testopencv_Main2Activity_getBinMask(JNIEnv *env, jobject ins
 //
 //    return foreground;
 //}
+
+
+
+
+extern "C"
+JNIEXPORT Mat JNICALL
+Java_com_martin_ads_testopencv_Main2Activity_nativeCVSmooth(JNIEnv *env, jobject instance,
+                                                            jlong img) {
+    Mat *image = (Mat *) img;
+    Mat *image2 = (Mat *) img;
+
+    cvSmooth(image, image2, CV_BLUR, 11, 11);
+
+    return *image2;
+}
+
+
 
 
