@@ -234,20 +234,21 @@ public class Main2Activity extends Activity implements View.OnTouchListener {
         Imgproc.erode(erode, dilate, structuringElement);
         Imgproc.dilate(dilate, dilate, structuringElement);
 
-        Imgproc.blur(dilate, dilate, new Size(19, 19));
+        //使mask模糊，进而是抠出图像边沿变得平滑
+        Imgproc.blur(dilate, dilate, new Size(7, 7));
 
         img.copyTo(foreground, dilate);//根据掩码，从原图中取出最终的前景
 
         b = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.ARGB_8888);
 
-
-        //边缘模糊
+        //整体模糊
 //        foreground = nativeCVSmooth(foreground.nativeObj);
 //        Imgproc.blur(foreground, foreground, new Size(9, 9));
 //        Imgproc.GaussianBlur(foreground, foreground, new Size(9, 9), 0, 0);
 //        Imgproc.medianBlur(foreground, foreground, CV_GAUSSIAN_5x5);
 //        Imgproc.medianBlur(foreground, foreground, CV_MEDIAN);
 //        Imgproc.bilateralFilter(foreground, foreground, 5, param1, param2);
+
         Utils.matToBitmap(foreground, b);
 
         Log.e(TAG, "结束grabcut。。。。。。。执行时间为 ： " + ((System.currentTimeMillis() - time) / 1000) + "s");
