@@ -130,7 +130,6 @@
 //    long img = (long) &res;
 //    env->CallVoidMethod(instance, showId, img);
 //}
-//
 ////设置矩形范围大小
 //void GCApplication::setRectInMask() {
 //    CV_Assert(!mask.empty());
@@ -141,7 +140,6 @@
 //    rect.height = min(rect.height, image->rows - rect.y);
 //    (mask(rect)).setTo(Scalar(GC_PR_FGD));
 //}
-//
 ////设置上小圆点
 //void GCApplication::setLblsInMask(int flags, Point p, bool isPr) {
 //    vector<Point> *bpxls, *fpxls;
@@ -254,8 +252,7 @@
 //
 //extern "C"
 //JNIEXPORT GCApplication *JNICALL
-//Java_com_martin_ads_testopencv_Main3Activity_initGrabCut(JNIEnv *env, jobject instance,
-//                                                         jlong image) {
+//Java_com_martin_ads_testopencv_Main3Activity_initGrabCut(JNIEnv *env, jobject instance, jlong image) {
 //
 //    // TODO
 //    Mat *img = (Mat *) image;//得到输入
@@ -269,9 +266,8 @@
 //    return gcapp;
 //}extern "C"
 //JNIEXPORT void JNICALL
-//Java_com_martin_ads_testopencv_Main3Activity_moveGrabCut(JNIEnv *env, jobject instance, jint event,
-//                                                         jint x,
-//                                                         jint y, jint flags, jlong gcapp) {
+//Java_com_martin_ads_testopencv_Main3Activity_moveGrabCut(JNIEnv *env, jobject instance, jint event, jint x,
+//                                                  jint y, jint flags, jlong gcapp) {
 //
 //    // TODO
 //    GCApplication *g = (GCApplication *) gcapp;
@@ -295,8 +291,7 @@
 //    return (jboolean) (newIterCount > iterCount);
 //}extern "C"
 //JNIEXPORT void JNICALL
-//Java_com_martin_ads_testopencv_Main3Activity_grabCutOver(JNIEnv *env, jobject instance,
-//                                                         jlong gcapp) {
+//Java_com_martin_ads_testopencv_Main3Activity_grabCutOver(JNIEnv *env, jobject instance, jlong gcapp) {
 //
 //    // TODO
 //    GCApplication *g = (GCApplication *) gcapp;
@@ -321,22 +316,5 @@
 ////
 ////    return foreground;
 ////}
-//
-//
-//
-//
-//extern "C"
-//JNIEXPORT Mat JNICALL
-//Java_com_martin_ads_testopencv_Main2Activity_nativeCVSmooth(JNIEnv *env, jobject instance,
-//                                                            jlong img) {
-//    Mat *image = (Mat *) img;
-//    Mat *image2 = (Mat *) img;
-//
-//    cvSmooth(image, image2, CV_BLUR, 11, 11);
-//
-//    return *image2;
-//}
-//
-//
 //
 //
